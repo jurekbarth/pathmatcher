@@ -4,7 +4,8 @@ const {
   getRules,
   checkIfRules,
   getMatchedRules,
-  getFirstMatchingRule
+  getFirstMatchingRule,
+  getGroupsForUri
 } = require('./index');
 
 const rules = require('./rules');
@@ -56,7 +57,7 @@ test('getMatchedRules for: /a/b/c/d', () => {
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri);
   const uriRules = getRules(rules, base); // returns an object of rules
-  const shouldBe = [{ "allow": true, "groups": ["normal"], "rule": "/**/*" }];
+  const shouldBe = [{ "allow": true, "rule": "/**/*", "triggers": { "groups": ["p1--client-view", "dev"] } }];
   expect(getMatchedRules(uriRules, strippedUri)).toEqual(shouldBe)
 });
 
@@ -65,14 +66,14 @@ test('getMatchedRules for: /a/b/c/d/index.html', () => {
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri)
   const uriRules = getRules(rules, base); // returns an object of rules
-  const shouldBe = [{ "allow": false, "groups": ["special-group"], "rule": "!/**/index.html" }, { "allow": true, "groups": ["normal"], "rule": "/**/*" }];
+  const shouldBe = [{ "allow": false, "rule": "!/**/index.html", "triggers": { "groups": ["p1--client-view-c-level"] } }, { "allow": true, "rule": "/**/*", "triggers": { "groups": ["p1--client-view", "dev"] } }];
   expect(getMatchedRules(uriRules, strippedUri)).toEqual(shouldBe)
 });
 
 
-test('getFirstMatchingRule for: /a/b/c/d/index.html group: just-master', () => {
+test('getFirstMatchingRule for: /a/b/c/d/index.html group: other-group', () => {
   const uri = '/a/b/c/d/index.html'
-  const groups = ['just-master'];
+  const groups = ['other-group'];
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri);
   const uriRules = getRules(rules, base); // returns an object of rules
@@ -80,35 +81,64 @@ test('getFirstMatchingRule for: /a/b/c/d/index.html group: just-master', () => {
   expect(getFirstMatchingRule(matchingRules, groups)).toBeUndefined()
 });
 
-test('getFirstMatchingRule for: /a/b/c/d/index.html group: normal', () => {
+test('getFirstMatchingRule for: /a/b/c/d/index.html group: p1--client-view', () => {
   const uri = '/a/b/c/d/index.html'
-  const groups = ['normal'];
+  const groups = ['p1--client-view'];
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri);
   const uriRules = getRules(rules, base); // returns an object of rules
   const matchingRules = getMatchedRules(uriRules, strippedUri);
-  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "groups": ["normal"], "rule": "/**/*" })
+  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "rule": "/**/*", "triggers": { "groups": ["p1--client-view", "dev"] } })
 });
 
-test('getFirstMatchingRule for: /a/b/c/d/index.html group: special-group', () => {
-  const uri = '/a/b/c/d/index.html'
-  const groups = ['special-group'];
+test('getFirstMatchingRule for: /a/b/master/d/index.html group: p1--client-view-c-level', () => {
+  const uri = '/a/b/master/d/index.html'
+  const groups = ['p1--client-view-c-level'];
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri);
   const uriRules = getRules(rules, base); // returns an object of rules
   const matchingRules = getMatchedRules(uriRules, strippedUri);
-  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": false, "groups": ["special-group"], "rule": "!/**/index.html" })
+  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "rule": "/master/**", "triggers": { "groups": ["p1--client-view-c-level"] } })
 });
 
-test('getFirstMatchingRule for: /a/b/c/d/index.html group: normal, special-group', () => {
+test('getFirstMatchingRule for: /a/b/c/d/index.html group: p1--client-view-c-level, p1--client-view', () => {
   const uri = '/a/b/c/d/index.html'
-  const groups = ['normal', 'special-group'];
+  const groups = ['p1--client-view-c-level', 'p1--client-view'];
   const base = getBase(uri); // /a/b
   const strippedUri = stripBase(base, uri);
   const uriRules = getRules(rules, base); // returns an object of rules
   const matchingRules = getMatchedRules(uriRules, strippedUri);
-  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": false, "groups": ["special-group"], "rule": "!/**/index.html" })
+  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": false, "rule": "!/**/index.html", "triggers": { "groups": ["p1--client-view-c-level"] } })
 });
+
+test('getFirstMatchingRule for: /a/b/c/d/somepage.html group: p1--client-view-c-level, p1--client-view', () => {
+  const uri = '/a/b/c/d/somepage.html'
+  const groups = ['p1--client-view-c-level', 'p1--client-view'];
+  const base = getBase(uri); // /a/b
+  const strippedUri = stripBase(base, uri);
+  const uriRules = getRules(rules, base); // returns an object of rules
+  const matchingRules = getMatchedRules(uriRules, strippedUri);
+  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "rule": "/**/*", "triggers": { "groups": ["p1--client-view", "dev"] } })
+});
+
+test('getFirstMatchingRule for: /a/b/master/d/index.html group: p1--client-view-c-level, p1--client-view', () => {
+  const uri = '/a/b/master/d/index.html'
+  const groups = ['p1--client-view-c-level', 'p1--client-view'];
+  const base = getBase(uri); // /a/b
+  const strippedUri = stripBase(base, uri);
+  const uriRules = getRules(rules, base); // returns an object of rules
+  const matchingRules = getMatchedRules(uriRules, strippedUri);
+  expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "rule": "/master/**", "triggers": { "groups": ["p1--client-view-c-level"] } })
+});
+
+
+test('getGroupsForUri for: /a/b/master/d/index.html group: p1--client-view-c-level, p1--client-view', () => {
+  const uri = '/a/b/master/d/index.html'
+  const groups = ['p1--client-view-c-level', 'p1--client-view'];
+  expect(getGroupsForUri(uri, rules, groups)).toEqual(["p1--client-view-c-level"])
+});
+
+
 
 
 

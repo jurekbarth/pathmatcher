@@ -1,8 +1,13 @@
 const mm = require('micromatch');
 
 const getBase = (uri, options = { baseDepth: 2 }) => {
+  let depth = options.baseDepth + 1;
   const uriParts = uri.split('/');
-  return uriParts.slice(0, options.baseDepth + 1).join("/");
+  const length = uriParts.length - 1;
+  if (depth >= length && uriParts[length - 1].indexOf('.') != -1) {
+    depth = uriParts.length - 1
+  }
+  return uriParts.slice(0, depth).join("/");
 }
 
 const stripBase = (base, uri) => uri.replace(base, '');
@@ -20,14 +25,14 @@ const getMatchedRules = (rules, uri) => {
       arr.push({
         allow: false,
         rule,
-        groups: rules[rule],
+        triggers: rules[rule],
       })
     }
     if (!rule.startsWith('!') && mm.isMatch(uri, rule)) {
       arr.push({
         allow: true,
         rule,
-        groups: rules[rule],
+        triggers: rules[rule],
       })
     }
   });
@@ -37,13 +42,28 @@ const getMatchedRules = (rules, uri) => {
 const getFirstMatchingRule = (matchedRules, groups) => matchedRules.find(matchedRule => {
   let isGroupMember = false;
   for (let group of groups) {
-    if (matchedRule.groups.indexOf(group) != -1) {
+    if (matchedRule.triggers.groups.indexOf(group) != -1) {
       isGroupMember = true;
       break;
     };
   }
   return isGroupMember
 });
+
+const getGroupsForUri = (uri = '', rules = {}, groups = []) => {
+  const base = getBase(uri);
+  if (!checkIfRules(rules, base)) {
+    return [];
+  }
+  const uriRules = getRules(rules, base);
+  const strippedUri = stripBase(base, uri);
+  const matchingRules = getMatchedRules(uriRules, strippedUri);
+  const firstRule = getFirstMatchingRule(matchingRules, groups);
+  if (firstRule === undefined) {
+    return [];
+  }
+  return firstRule.triggers.groups;
+}
 
 
 module.exports = {
@@ -52,5 +72,6 @@ module.exports = {
   checkIfRules,
   getRules,
   getMatchedRules,
-  getFirstMatchingRule
+  getFirstMatchingRule,
+  getGroupsForUri
 }
