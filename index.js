@@ -62,7 +62,10 @@ const getGroupsForUri = (uri = '', rules = {}, groups = []) => {
   if (firstRule === undefined) {
     return [];
   }
-  return firstRule.triggers.groups;
+  if (firstRule.allow) {
+    return firstRule.triggers.groups;
+  }
+  return [];
 }
 
 
