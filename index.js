@@ -4,7 +4,7 @@ const getBase = (uri, options = { baseDepth: 2 }) => {
   let depth = options.baseDepth + 1;
   const uriParts = uri.split('/');
   const length = uriParts.length - 1;
-  if (depth >= length && uriParts[length - 1].indexOf('.') != -1) {
+  if (depth >= length && uriParts[length].indexOf('.') != -1) {
     depth = uriParts.length - 1
   }
   return uriParts.slice(0, depth).join("/");
