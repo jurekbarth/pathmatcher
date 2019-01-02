@@ -10,56 +10,56 @@ const {
 
 const rules = require('./rules');
 
-test('getBase of /one/two/three should be /one/two', () => {
-  const uri = '/one/two/three'
-  expect(getBase(uri)).toBe('/one/two');
+test('getBase from /a/b/c', () => {
+  const uri = '/a/b/c'
+  expect(getBase(uri)).toBe('/a/b');
 });
 
-test('getBase of /a/b/c/d should be /a/b/c', () => {
+test('getBase from /a/b/c/d', () => {
   const uri = '/a/b/c/d'
   expect(getBase(uri, { baseDepth: 3 })).toBe('/a/b/c');
 });
 
-test('getBase of /a should be /a', () => {
+test('getBase from /a', () => {
   const uri = '/a'
   expect(getBase(uri)).toBe('/a');
 });
 
-test('getBase of /a/index.html should be /a', () => {
+test('getBase from /a/index.html', () => {
   const uri = '/a/index.html'
   expect(getBase(uri)).toBe('/a');
 });
 
-test('getBase of /a/b/index.html should be /a/b', () => {
+test('getBase from /a/b/index.html', () => {
   const uri = '/a/b/index.html'
   expect(getBase(uri)).toBe('/a/b');
 });
 
-test('stripBase base: /a/b uri: /a/b/c should be /c', () => {
+test('stripBase base: from /a/b/c', () => {
   const uri = '/a/b/c'
   const base = getBase(uri);
   expect(stripBase(base, uri)).toBe('/c');
 });
 
-test('stripBase base: /a/b uri: /a/b/c/d should be /c/d', () => {
+test('stripBase from: /a/b/c/d', () => {
   const uri = '/a/b/c/d'
   const base = getBase(uri);
   expect(stripBase(base, uri)).toBe('/c/d');
 });
 
-test('stripBase base: /a uri: /a/index.html should be /index.html', () => {
+test('stripBase from: /a/index.html', () => {
   const uri = '/a/index.html'
   const base = getBase(uri);
   expect(stripBase(base, uri)).toBe('/index.html');
 });
 
-test('checkIfRules base: /a/b uri: /a/b/c/d should be true', () => {
+test('checkIfRules for: /a/b/c/d', () => {
   const uri = '/a/b/c/d'
   const base = getBase(uri);
   expect(checkIfRules(rules, base)).toBe(true);
 });
 
-test('getRules base: /a/b uri: /a/b/c/d should be object', () => {
+test('getRules for: /a/b/c/d', () => {
   const uri = '/a/b/c/d'
   const base = getBase(uri);
   expect(getRules(rules, base)).toBe(rules[base]);
@@ -168,11 +168,12 @@ test('getGroupsForUri for: /login/a/b.html group: public', () => {
   const uri = '/login/a/b.html'
   const groups = ['public'];
   // this should not work, because the base is '/login/a'
-  // improvement would be to build an ast
+  // improvement would be to build an ast of rules, so we won't have a fixed base
   expect(getGroupsForUri(uri, rules, groups)).toEqual([])
 });
 
-
-
-
-
+test('getGroupsForUri for: /a/b/c/d/index.html group: p1--client-view-c-level, p1--client-view', () => {
+  const uri = '/a/b/c/d/index.html'
+  const groups = ['p1--client-view-c-level', 'p1--client-view'];
+  expect(getGroupsForUri(uri, rules, groups)).toEqual([])
+});
