@@ -25,12 +25,21 @@ test('getBase of /a should be /a', () => {
   expect(getBase(uri)).toBe('/a');
 });
 
+test('getBase of /a/index.html should be /a', () => {
+  const uri = '/a/index.html'
+  expect(getBase(uri)).toBe('/a');
+});
+
+test('getBase of /a/b/index.html should be /a/b', () => {
+  const uri = '/a/b/index.html'
+  expect(getBase(uri)).toBe('/a/b');
+});
+
 test('stripBase base: /a/b uri: /a/b/c should be /c', () => {
   const uri = '/a/b/c'
   const base = getBase(uri);
   expect(stripBase(base, uri)).toBe('/c');
 });
-
 
 test('stripBase base: /a/b uri: /a/b/c/d should be /c/d', () => {
   const uri = '/a/b/c/d'
@@ -38,7 +47,11 @@ test('stripBase base: /a/b uri: /a/b/c/d should be /c/d', () => {
   expect(stripBase(base, uri)).toBe('/c/d');
 });
 
-
+test('stripBase base: /a uri: /a/index.html should be /index.html', () => {
+  const uri = '/a/index.html'
+  const base = getBase(uri);
+  expect(stripBase(base, uri)).toBe('/index.html');
+});
 
 test('checkIfRules base: /a/b uri: /a/b/c/d should be true', () => {
   const uri = '/a/b/c/d'
@@ -70,6 +83,14 @@ test('getMatchedRules for: /a/b/c/d/index.html', () => {
   expect(getMatchedRules(uriRules, strippedUri)).toEqual(shouldBe)
 });
 
+test('getMatchedRules for: /login/b/index.html', () => {
+  const uri = '/login/b/index.html'
+  const base = getBase(uri, { baseDepth: 1 });
+  const strippedUri = stripBase(base, uri)
+  const uriRules = getRules(rules, base); // returns an object of rules
+  const shouldBe = [{ "allow": true, "rule": "/**/*", "triggers": { "groups": ["public"] } }];
+  expect(getMatchedRules(uriRules, strippedUri)).toEqual(shouldBe)
+});
 
 test('getFirstMatchingRule for: /a/b/c/d/index.html group: other-group', () => {
   const uri = '/a/b/c/d/index.html'
@@ -131,11 +152,24 @@ test('getFirstMatchingRule for: /a/b/master/d/index.html group: p1--client-view-
   expect(getFirstMatchingRule(matchingRules, groups)).toEqual({ "allow": true, "rule": "/master/**", "triggers": { "groups": ["p1--client-view-c-level"] } })
 });
 
-
 test('getGroupsForUri for: /a/b/master/d/index.html group: p1--client-view-c-level, p1--client-view', () => {
   const uri = '/a/b/master/d/index.html'
   const groups = ['p1--client-view-c-level', 'p1--client-view'];
   expect(getGroupsForUri(uri, rules, groups)).toEqual(["p1--client-view-c-level"])
+});
+
+test('getGroupsForUri for: /login/index.html group: public', () => {
+  const uri = '/login/index.html'
+  const groups = ['public'];
+  expect(getGroupsForUri(uri, rules, groups)).toEqual(["public"])
+});
+
+test('getGroupsForUri for: /login/a/b.html group: public', () => {
+  const uri = '/login/a/b.html'
+  const groups = ['public'];
+  // this should not work, because the base is '/login/a'
+  // improvement would be to build an ast
+  expect(getGroupsForUri(uri, rules, groups)).toEqual([])
 });
 
 

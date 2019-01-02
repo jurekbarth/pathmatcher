@@ -1,4 +1,9 @@
 const rules = {
+  '/login': {
+    "/**/*": {
+      "groups": ["public"],
+    },
+  },
   '/a/b': {
     "/master/**": {
       "groups": [
