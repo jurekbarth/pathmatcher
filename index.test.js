@@ -8,7 +8,7 @@ const {
   getGroupsForUri
 } = require('./index');
 
-const rules = require('./rules');
+const rules = require('./mock');
 
 test('getBase from /a/b/c', () => {
   const uri = '/a/b/c'
@@ -161,6 +161,12 @@ test('getGroupsForUri for: /a/b/master/d/index.html group: p1--client-view-c-lev
 test('getGroupsForUri for: /login/index.html group: public', () => {
   const uri = '/login/index.html'
   const groups = ['public'];
+  expect(getGroupsForUri(uri, rules, groups)).toEqual(["public"])
+});
+
+test('getGroupsForUri for: /login/somethingElse.html group: somegroup, public', () => {
+  const uri = '/login/somethingElse.html'
+  const groups = ['somegroup', 'public'];
   expect(getGroupsForUri(uri, rules, groups)).toEqual(["public"])
 });
 
