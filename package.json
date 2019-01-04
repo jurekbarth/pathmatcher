@@ -1,7 +1,8 @@
 {
-  "name": "pathmatcher",
-  "version": "0.0.1",
+  "name": "@jurekbarth/pathmatcher",
+  "version": "0.0.2",
   "description": "",
+  "private": false,
   "main": "index.js",
   "scripts": {
     "test": "jest"
