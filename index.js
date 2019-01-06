@@ -1,4 +1,4 @@
-const mm = require('micromatch');
+const mm = require('minimatch');
 
 const getBase = (uri, options = { baseDepth: 2 }) => {
   let depth = options.baseDepth + 1;
@@ -21,14 +21,14 @@ const getRules = (rules, base) => {
 const getMatchedRules = (rules, uri) => {
   const arr = [];
   Object.keys(rules).forEach(rule => {
-    if (rule.startsWith('!') && mm.isMatch(uri, rule.substring(1))) {
+    if (rule.startsWith('!') && mm(uri, rule.substring(1))) {
       arr.push({
         allow: false,
         rule,
         triggers: rules[rule],
       })
     }
-    if (!rule.startsWith('!') && mm.isMatch(uri, rule)) {
+    if (!rule.startsWith('!') && mm(uri, rule)) {
       arr.push({
         allow: true,
         rule,
