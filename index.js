@@ -20,19 +20,20 @@ const getRules = (rules, base) => {
 
 const getMatchedRules = (rules, uri) => {
   const arr = [];
-  Object.keys(rules).forEach(rule => {
+  rules.forEach(obj => {
+    const rule = Object.keys(obj)[0];
     if (rule.startsWith('!') && mm(uri, rule.substring(1))) {
       arr.push({
         allow: false,
         rule,
-        triggers: rules[rule],
+        triggers: obj[rule],
       })
     }
     if (!rule.startsWith('!') && mm(uri, rule)) {
       arr.push({
         allow: true,
         rule,
-        triggers: rules[rule],
+        triggers: obj[rule],
       })
     }
   });
